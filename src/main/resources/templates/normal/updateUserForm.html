@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{normal/base::layout(~{::section})}">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Update Profile</title>
+    
+    <!-- ✅ Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    
+    <!-- ✅ Reuse Signup CSS -->
+    <link rel="stylesheet" th:href="@{/css/signup.css}">
+
+</head>
+
+<body>
+    <section class="d-flex align-items-center justify-content-center" style="margin-top: 10px; max-height:80vh;">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-5">
+                    <div class="card shadow-lg p-3 form-container">
+                        <h2 class="text-center mb-2">Update Profile</h2>
+
+                        <!-- Error or Success Message -->
+                        <div th:if="${error}" class="alert alert-danger text-center">
+                            <p th:text="${error}"></p>
+                        </div>
+                        <div th:if="${success}" class="alert alert-success text-center">
+                            <p th:text="${success}"></p>
+                        </div>
+
+                        <!-- Update Form -->
+                        <form th:action="@{/update-User}" method="post" th:object="${user}">
+                            <input type="hidden" th:field="*{userId}" />
+                            <input type="hidden" th:field="*{password}" />
+                            
+
+                            <!-- Name -->
+                            <div class="mb-2">
+                                <label class="form-label">Name:</label>
+                                <input type="text" th:field="*{name}" class="form-control" required>
+                                <div class="text-danger" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+                            </div>
+
+                            <!-- Email -->
+                            <div class="mb-2">
+                                <label class="form-label">Email:</label>
+                                <input type="email" th:field="*{email}" class="form-control" required>
+                                <div class="text-danger" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+                            </div>
+
+                            <!-- Role (Radio Buttons) -->
+                            <div class="mb-2">
+                                <label class="form-label">Role:</label>
+                                <div class="d-flex gap-3" style="gap:1vw">
+                                    <div class="form-check" style="display:flex; align-items:center">
+                                        <input type="radio" th:field="*{role}" value="Admin" id="adminRadio"
+                                            class="form-check-input" th:checked="${user.role == 'Admin'}">
+                                        <label style="cursor:pointer" class="form-check-label role-label"
+                                            for="adminRadio">Admin</label>
+                                    </div>
+                                    <div class="form-check" style="display:flex; align-items:center">
+                                        <input type="radio" th:field="*{role}" value="User" id="userRadio"
+                                            class="form-check-input" th:checked="${user.role == 'User'}">
+                                        <label style="cursor:pointer" class="form-check-label role-label"
+                                            for="userRadio">User</label>
+                                    </div>
+                                </div>
+                                <div class="text-danger" th:if="${#fields.hasErrors('role')}" th:errors="*{role}"></div>
+                            </div>
+
+                            <!-- About -->
+                            <div class="mb-2">
+                                <label class="form-label">About:</label>
+                                <textarea th:field="*{about}" class="form-control" rows="3" required></textarea>
+                                <div class="text-danger" th:if="${#fields.hasErrors('about')}" th:errors="*{about}"></div>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <div class="text-center mt-3">
+                                <button type="submit" class="btn btn-primary">Update Profile</button>
+                                <button type="reset" class="btn btn-secondary ms-2">Reset</button>
+                            </div>
+
+                            <!-- Horizontal Line -->
+                            <hr class="mt-2 mb-2" style="height: 1px; border-width: 1px; border-color: black;">
+
+                            <!-- Back to Profile -->
+                            <div class="text-center mt-2">
+                                <p>Go back to <a th:href="@{/profile}" class="text-primary" style="text-decoration:none;">Profile</a></p>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ✅ JavaScript -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // ✅ Handle radio button label clicks
+            document.querySelectorAll(".role-label").forEach(function (label) {
+                label.addEventListener("click", function () {
+                    let radioInput = document.getElementById(this.getAttribute("for")); // Get related radio input
+                    if (radioInput) {
+                        radioInput.checked = true; // Select the radio button
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

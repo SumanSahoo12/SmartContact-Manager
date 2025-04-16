@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{normal/base::layout(~{::section})}">
+
+<head>
+	<meta charset="UTF-8" />
+	<title>User Dashboard</title>
+</head>
+
+<body>
+	<section>
+
+		<div class="container">
+			<div class="card">
+				<div class="card-body my-5">
+
+					<!-- Display success message -->
+					<div th:if="${success}" class="alert alert-success text-center">
+						<span th:text="${success}"></span>
+					</div>
+
+					<div class="container text-center">
+						<img class="myProfilePicture myProfilePicture2" th:src="@{'/image/contactLogo.png'}"
+							alt="profile photo" />
+					</div>
+
+					<h1 class="text-center mt-3 text-secondary">Start adding your contact</h1>
+					<a th:href="@{'/addContact'}" class="btn btn-primary btn-block mt-4 text-uppercase">Add New
+						Contact</a>
+					<a th:href="@{'/showContacts/0'}" class="btn btn-success btn-block mt-2 text-uppercase">Show
+						Contacts</a>
+					<a th:href="@{'/logout'}" class="btn btn-danger btn-block mt-2 text-uppercase">LOGOUT</a>
+				</div>
+			</div>
+		</div>
+
+		<script>
+			$(document).ready(() => {
+				$(".item").removeClass("active");
+				$('#home-link').addClass("active");
+			});
+		</script>
+
+	</section>
+</body>
+
+</html>

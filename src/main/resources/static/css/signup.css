@@ -1,0 +1,98 @@
+/* Ensure full height for proper centering */
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+    height: 100vh; 
+}
+
+/* Form container styling */
+.form-container {
+    max-width: 400px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+}
+
+/* Success/Error Message Position */
+.alert {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 400px;
+    z-index: 1000;
+}
+
+/* Form Labels */
+.form-label {
+    font-weight: bold;
+    color: #555;
+    font-size: 14px;
+}
+
+/* Input Fields */
+.form-control {
+    border-radius: 5px;
+    border: 1px solid #ced4da;
+    font-size: 14px;
+}
+
+/* Error Messages */
+.text-danger {
+    font-size: 0.85rem;
+}
+
+/* Button Styling */
+.btn {
+    padding: 8px 12px;
+    font-size: 14px;
+    border-radius: 5px;
+}
+
+/* Reduce Spacing Between Fields */
+.mb-2 {
+    margin-bottom: 0.8rem;
+}
+
+/* Role Radio Buttons Alignment */
+.d-flex.gap-3 {
+    display: flex;
+    align-items: center; /* Ensure vertical alignment */
+    gap: 15px; /* Increased space between radio buttons */
+}
+
+/* Adjust radio button and checkbox alignment */
+.form-check-input[type="radio"],
+.form-check-input[type="checkbox"] {
+    margin-top: 0.2rem; /* Moves the input slightly down */
+    vertical-align: middle; /* Ensures proper alignment */
+}
+
+/* Ensure labels align properly */
+.form-check-label {
+    margin-bottom: 0; /* Remove extra margin */
+    vertical-align: middle;
+}
+
+/* Proper alignment for checkboxes */
+.form-check {
+    display: flex;
+    align-items: center; /* Align checkbox and label properly */
+    gap: 8px;
+    
+}
+#checkBox {
+	display:flex !important;
+	align-items:center !important ;
+	
+}
+/* Responsive Adjustments */
+@media (max-width: 576px) {
+    .form-container {
+        width: 90%;
+    }
+}

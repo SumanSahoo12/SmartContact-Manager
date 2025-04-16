@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="normal/base::layout(~{::section})">
+
+<head>
+	<meta charset="UTF-8" />
+	<title>Update Contact</title>
+</head>
+
+<body>
+	<section>
+		<div class="card mr-3 ml-3">
+			<div class="card-body">
+				<h1 class="text-center">Update Contact</h1>
+				<div class="container-fluid mt-1">
+					<div class="row">
+						<div class="col-md-8 offset-md-2">
+
+							<!-- Display Success Message -->
+							<div th:if="${success}" class="alert alert-success text-center">
+								<p th:text="${success}"></p>
+							</div>
+
+							<!-- Display General Error Message -->
+							<div th:if="${error}" class="alert alert-danger text-center">
+								<p th:text="${error}"></p>
+							</div>
+
+							<!-- Form Section -->
+							<form th:object="${contact}" enctype="multipart/form-data" method="post"
+								th:action="@{/processUpdate/{id}(id=${contact.contactId})}" class="mt-2">
+
+								<!-- Hidden field for contact ID -->
+								<input type="hidden" th:field="*{contactId}" />
+
+								<!-- First name -->
+								<div class="mb-3">
+									<label class="form-label">First Name:</label>
+									<input th:field="*{name}" type="text" class="form-control"
+										placeholder="Enter Name here" required />
+									<div class="text-danger" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">
+									</div>
+								</div>
+
+								<!-- Second name -->
+								<div class="mb-3">
+									<label class="form-label">Nick Name:</label>
+									<input th:field="*{secondName}" type="text" class="form-control"
+										placeholder="Enter Nick Name here" />
+								</div>
+
+								<!-- Phone -->
+								<div class="mb-3">
+									<label class="form-label">Phone:</label>
+									<input th:field="*{phone}" type="number" class="form-control"
+										placeholder="Enter Phone Number" required />
+									<div class="text-danger" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}">
+									</div>
+								</div>
+
+								<!-- Email -->
+								<div class="mb-3">
+									<label class="form-label">Email:</label>
+									<input th:field="*{email}" type="email" class="form-control"
+										placeholder="Enter email here" required />
+									<div class="text-danger" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">
+									</div>
+								</div>
+
+								<!-- Work -->
+								<div class="mb-3">
+									<label class="form-label">Work:</label>
+									<input th:field="*{work}" type="text" class="form-control"
+										placeholder="Enter work here" required />
+								</div>
+
+								<!-- Description -->
+								<div class="mb-3">
+									<label class="form-label">Contact Description:</label>
+									<textarea th:field="*{description}" class="form-control" rows="5"
+										placeholder="Enter Contact description" required></textarea>
+								</div>
+
+								<!-- Contact Image -->
+								<div class="mb-3">
+									<label class="form-label">Profile Image:</label>
+									<div>
+										<!-- Show existing image with cache-busting -->
+										<img th:src="@{'/image/' + ${contact.image} + '?v=' + ${#dates.createNow().getTime()}}"
+											alt="Profile Image"
+											style="width: 100px; height: 100px; object-fit: cover; border-radius: 5px;" />
+
+									</div>
+									<input type="file" class="form-control" name="profileImage" accept="image/*">
+
+									<!-- Display Image Upload Error -->
+									<div class="text-danger mt-2" th:if="${errorImage}" th:text="${errorImage}"></div>
+								</div>
+
+								<!-- Submit Button -->
+								<div class="text-center">
+									<button type="submit" class="btn btn-primary">Update Contact</button>
+								</div>
+
+							</form>
+							<!-- End of Form -->
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+</body>
+
+</html>

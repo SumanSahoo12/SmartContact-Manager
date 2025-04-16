@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="normal/base::layout(~{::section})">
+
+<head>
+	<meta charset="UTF-8" />
+	<title>Setting Page</title>
+</head>
+
+<body>
+	<section>
+
+		<h1>This is setting page</h1>
+
+		<div class="container">
+
+			<div class="row">
+
+				<div class="col-md-12">
+
+					<div class="card">
+
+						<div class="card-body">
+
+							<!-- Display error message -->
+							<div th:if="${error}" class="alert alert-danger text-center">
+								<span th:text="${error}"></span>
+							</div>
+
+							<h3 class="mb-3">Change Password</h3>
+
+							<form th:action="@{/changePassword}" method="post">
+								<!--old password field-->
+
+								<div class="form-group">
+									<input name="oldPassword" type="password" class="form-control"
+										placeholder="Enter old password" />
+									<!-- Error message for oldPassword -->
+									<div class="text-danger" th:if="${oldPasswordError}" th:text="${oldPasswordError}">
+									</div>
+								</div>
+
+								<!--new password field-->
+
+								<div class="form-group">
+									<input name="newPassword" type="password" class="form-control"
+										placeholder="Enter new password" />
+									<!-- Error message for newPassword -->
+									<div class="text-danger" th:if="${newPasswordError}" th:text="${newPasswordError}">
+									</div>
+								</div>
+
+								<div class="container text-center">
+									<button type="submit" class="btn btn-success">Change</button>
+									<button type="reset" class="btn btn-warning">Reset</button>
+								</div>
+							</form>
+
+
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<script>
+			$(document).ready(() => {
+				$(".item").removeClass("active");
+				$('#setting-link').addClass("active");
+			});
+		</script>
+
+	</section>
+</body>
+
+</html>
