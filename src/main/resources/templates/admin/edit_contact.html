@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/base :: layout(~{::section})}">
+
+<head>
+	<meta charset="UTF-8">
+	<title>Edit Contact</title>
+</head>
+
+<body>
+	<section>
+		<div class="container my-4">
+			<div class="card shadow-sm">
+				<div class="card-body">
+					<h3 class="text-center text-info mb-4">Edit Contact</h3>
+
+					<form th:action="@{/admin/manage-contacts/update}" method="post" th:object="${contact}">
+						<input type="hidden" th:field="*{contactId}" />
+
+						<!-- Name -->
+						<div class="form-group mb-3">
+							<label>Name</label>
+							<input class="form-control" th:field="*{name}" required />
+							<div class="text-danger" th:errors="*{name}"></div>
+						</div>
+
+						<!-- Image -->
+						<input type="hidden" th:field="*{image}">
+
+						<!-- Second Name -->
+						<div class="form-group mb-3">
+							<label>Second Name</label>
+							<input class="form-control" th:field="*{secondName}" />
+							<div class="text-danger" th:errors="*{secondName}"></div>
+						</div>
+
+						<!-- Work -->
+						<div class="form-group mb-3">
+							<label>Work</label>
+							<input class="form-control" th:field="*{work}" required />
+							<div class="text-danger" th:errors="*{work}"></div>
+						</div>
+
+						<!-- Email -->
+						<div class="form-group mb-3">
+							<label>Email</label>
+							<input type="email" class="form-control" th:field="*{email}" required />
+							<div class="text-danger" th:errors="*{email}"></div>
+						</div>
+
+						<!-- Phone -->
+						<div class="form-group mb-3">
+							<label>Phone</label>
+							<input class="form-control" th:field="*{phone}" required />
+							<div class="text-danger" th:errors="*{phone}"></div>
+						</div>
+
+						<!-- Description -->
+						<div class="form-group mb-4">
+							<label>Description</label>
+							<textarea class="form-control" rows="4" th:field="*{description}" required></textarea>
+							<div class="text-danger" th:errors="*{description}"></div>
+						</div>
+
+						<div class="text-center">
+							<button class="btn btn-primary" type="submit">Update</button>
+							<a th:href="@{/admin/manage-contacts}" class="btn btn-secondary ml-2">Cancel</a>
+						</div>
+					</form>
+
+
+				</div>
+			</div>
+		</div>
+
+		<script>
+			$(document).ready(() => {
+				$(".item").removeClass("active");
+				$("#view-contacts").addClass("active");
+			});
+		</script>
+
+	</section>
+</body>
+
+</html>

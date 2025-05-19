@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/base :: layout(~{::section})}">
+
+<head>
+	<meta charset="UTF-8">
+	<title>Manage Users</title>
+</head>
+
+<body>
+	<section>
+		<div class="container my-4">
+			<div class="card shadow-sm">
+				<div class="card-body">
+
+					<!-- Flash messages -->
+					<div th:if="${success}" class="alert alert-success text-center" th:text="${success}"></div>
+					<div th:if="${error}" class="alert alert-danger text-center" th:text="${error}"></div>
+
+
+					<h3 class="text-center text-primary mb-4">User Management</h3>
+
+					<div class="table-responsive">
+						<table class="table table-bordered table-hover text-center">
+							<thead class="table-dark">
+								<tr>
+									<th>#</th>
+									<th>Name</th>
+									<th>Email</th>
+									<th>Role</th>
+									<th>Actions</th>
+								</tr>
+							</thead>
+
+							<tbody>
+								<tr th:each="user, iterStat : ${users.content}">
+									<td th:text="${iterStat.index + 1}">1</td> <!-- keep row index -->
+									<!-- OR show actual ID -->
+									<!-- <td th:text="${user.userId}">1</td> -->
+
+									<td th:text="${user.name}">User Name</td>
+									<td th:text="${user.email}">email@example.com</td>
+									<td th:text="${user.role}">ROLE_USER</td>
+									<td>
+										<a th:href="@{'/admin/edit/'  + ${user.userId}}" class="btn btn-sm btn-warning"
+											onclick="return confirm('Edit this contact?')">Edit</a>
+										<a th:href="@{'/admin/delete/' + ${user.userId}}" class="btn btn-sm btn-danger"
+											onclick="return confirm('Are you sure you want to delete this user?')">Delete</a>
+									</td>
+								</tr>
+							</tbody>
+
+						</table>
+					</div>
+
+					<!-- Pagination -->
+					<nav th:if="${users.totalPages > 1}">
+						<ul class="pagination justify-content-center">
+							<li class="page-item" th:classappend="${users.first} ? 'disabled'">
+								<a class="page-link"
+									th:href="@{/admin/manage-users(page=${users.number - 1})}">Previous</a>
+							</li>
+							<li class="page-item" th:each="i : ${#numbers.sequence(0, users.totalPages - 1)}"
+								th:classappend="${i == users.number} ? 'active'">
+								<a class="page-link" th:href="@{/admin/manage-users(page=${i})}"
+									th:text="${i + 1}">1</a>
+							</li>
+							<li class="page-item" th:classappend="${users.last} ? 'disabled'">
+								<a class="page-link" th:href="@{/admin/manage-users(page=${users.number + 1})}">Next</a>
+							</li>
+						</ul>
+					</nav>
+
+				</div>
+			</div>
+		</div>
+
+		<script>
+			$(document).ready(() => {
+				$(".item").removeClass("active");
+				$('#view-users').addClass("active");
+			});
+		</script>
+	</section>
+</body>
+
+</html>

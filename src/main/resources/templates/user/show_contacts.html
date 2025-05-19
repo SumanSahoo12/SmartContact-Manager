@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="normal/base::layout(~{::section})">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="user/base::layout(~{::section})">
 
 <head>
 	<meta charset="UTF-8" />
@@ -61,7 +61,6 @@
 								<th scope="row" th:text="${'SCMUSER'+c.contactId}">1</th>
 
 								<td>
-									<!--<img class="myProfilePicture" th:src="@{'/image/' + ${c.image}}" alt="profile photo" />-->
 									<img class="myProfilePicture"
 										th:src="@{'/image/' + ${c.image} + '?v=' + ${#dates.createNow().getTime()}}"
 										alt="profile photo" />
@@ -70,7 +69,7 @@
 								</td>
 
 								<td>
-									<a th:href="@{'/'+${c.contactId}+'/contact'}">
+									<a th:href="@{'/user/'+${c.contactId}+'/contact'}">
 										<span th:text="${c.email}"></span>
 									</a>
 								</td>
@@ -78,10 +77,10 @@
 								<td th:text="${c.phone}">Otto</td>
 
 								<td>
-									<a th:href="@{'/delete/'+${c.contactId}}" class="btn btn-danger btn-sm">
+									<a th:href="@{'/user/delete/'+${c.contactId}}" class="btn btn-danger btn-sm">
 										<i class="fas fa-trash"></i> Delete
 									</a>
-									<a th:href="@{'/update-contact/'+${c.contactId}}" class="btn btn-primary btn-sm">
+									<a th:href="@{'/user/update-contact/'+${c.contactId}}" class="btn btn-primary btn-sm">
 										<i class="fas fa-edit"></i> Update
 									</a>
 								</td>
@@ -96,16 +95,16 @@
 				<nav aria-label="Page navigation example" style="margin-top: -25px;">
 					<ul class="pagination">
 						<li th:if="${currentPage != 0}" class="page-item"><a
-								th:href="@{'/showContacts/'+${currentPage-1}}" class="page-link" href="#">Previous</a>
+								th:href="@{'/user/showContacts/'+${currentPage-1}}" class="page-link" href="#">Previous</a>
 						</li>
 
 						<li th:classappend="${currentPage==i-1?'active':''}"
 							th:each="i : ${#numbers.sequence(1,totalPages)}" class="page-item"><a
-								th:href="@{'/showContacts/'+${i-1}}" class="page-link" href="#"><span
+								th:href="@{'/user/showContacts/'+${i-1}}" class="page-link" href="#"><span
 									th:text="${i}"></span></a></li>
 
 						<li th:if="${currentPage+1 != totalPages}" class="page-item"><a
-								th:href="@{'/showContacts/'+${currentPage+1}}" class="page-link" href="#">Next</a></li>
+								th:href="@{'/user/showContacts/'+${currentPage+1}}" class="page-link" href="#">Next</a></li>
 					</ul>
 				</nav>
 

@@ -16,5 +16,11 @@ public interface UserRepo extends JpaRepository<User, Integer> {
     
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.contacts WHERE u.id = :userId")
     Optional<User> findUserWithContacts(@Param("userId") int userId);
+    
+    long countByRole(String role);
+    
+    long countByImageUrl(String imageUrl);
+
+
 
 }

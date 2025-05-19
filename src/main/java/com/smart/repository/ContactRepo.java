@@ -24,7 +24,7 @@ public interface ContactRepo extends JpaRepository<Contact, Integer>{
 
 	// Find name by email (if needed)
     @Query("SELECT c.name FROM Contact c WHERE c.email = :email")    
-    Optional<String> findNameByEmail(@Param("email") String email);
+    Optional<String> findNameByEmail(@Param("email") String email);      
 
     // Find contacts by user (fixed method name)
     @Query("SELECT c FROM Contact c WHERE c.user.id = :userId")
@@ -36,6 +36,23 @@ public interface ContactRepo extends JpaRepository<Contact, Integer>{
     
     //search    
     public List<Contact> findByNameContainingAndUser(String name,User user);
+    
+ // simple case-insensitive search by name or email
+    @Query("""
+           SELECT c FROM Contact c
+           WHERE LOWER(c.name)  LIKE %:kw%
+              OR LOWER(c.email) LIKE %:kw%
+           """)
+    Page<Contact> searchAll(@Param("kw") String kw, Pageable pageable);
+    
+    // methods to add for duplicate check
+ 	boolean existsByEmailAndUser(String email, User user);
+ 	boolean existsByPhoneAndUser(String phone, User user);
+ 	
+ 	List<Contact> findByUser(User user);
+
+
+
 
 
 }

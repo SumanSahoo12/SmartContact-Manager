@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="normal/base::layout(~{::section})">
+<html lang="en" xmlns:th="http://www.thymeleaf.org"  th:replace="~{admin/base :: layout(~{::section})}">
 
 <head>
 	<meta charset="UTF-8" />
@@ -8,8 +8,6 @@
 
 <body>
 	<section>
-
-		<h1>This is setting page</h1>
 
 		<div class="container">
 
@@ -25,10 +23,12 @@
 							<div th:if="${error}" class="alert alert-danger text-center">
 								<span th:text="${error}"></span>
 							</div>
+							
+							<h1 class="text-center">This is setting page</h1>
 
 							<h3 class="mb-3">Change Password</h3>
 
-							<form th:action="@{/changePassword}" method="post">
+							<form th:action="@{/admin/changePassword}" method="post">
 								<!--old password field-->
 
 								<div class="form-group">
@@ -65,7 +65,7 @@
 		<script>
 			$(document).ready(() => {
 				$(".item").removeClass("active");
-				$('#setting-link').addClass("active");
+				$('#admin-settings').addClass("active");
 			});
 		</script>
 

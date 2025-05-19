@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/base :: layout(~{::section})}">
+
+<head>
+	<meta charset="UTF-8">
+	<title>Manage Contacts</title>
+</head>
+
+<body>
+	<section>
+
+		<div class="container my-4">
+			<div class="card shadow-sm">
+				<div class="card-body">
+
+					<!-- Flash messages -->
+					<div th:if="${success}" class="alert alert-success text-center" th:text="${success}"></div>
+					<div th:if="${error}" class="alert alert-danger text-center" th:text="${error}"></div>
+
+
+					<h3 class="text-center text-success mb-4">Contact Management</h3>
+
+					<!-- Search bar -->
+					<form class="form-inline mb-3" th:action="@{/admin/manage-contacts}" method="get">
+						<input class="form-control mr-2" type="text" name="keyword" placeholder="Search name / email"
+							th:value="${keyword}">
+						<button class="btn btn-outline-info" type="submit">Search</button>
+					</form>
+
+					<!-- Contacts table -->
+					<div class="table-responsive">
+						<table class="table table-bordered table-hover text-center">
+							<thead class="thead-dark">
+								<tr>
+									<th>#</th>
+									<th>Name</th>
+									<th>Email</th>
+									<th>Phone</th>
+									<th>Owner</th>
+									<th>Actions</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr th:each="c, stat : ${contactPage.content}">
+									<td th:text="${stat.index + 1}">1</td>
+									<td th:text="${c.name}">Name</td>
+									<td th:text="${c.email}">email@example.com</td>
+									<td th:text="${c.phone}">1234567890</td>
+									<td th:text="${c.user.name}">Owner</td>
+									<td>
+										<!-- Update button -->
+										<a th:href="@{'/admin/manage-contacts/edit/' + ${c.contactId}}"
+											class="btn btn-sm btn-warning mr-1"
+											onclick="return confirm('Edit this contact?')">
+											Edit
+										</a>
+
+										<!-- Delete button -->
+										<a th:href="@{'/admin/manage-contacts/delete/' + ${c.contactId}}"
+											class="btn btn-sm btn-danger"
+											onclick="return confirm('Delete this contact?')">
+											Delete
+										</a>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+
+					<!-- Pagination -->
+					<nav th:if="${contactPage.totalPages > 1}">
+						<ul class="pagination justify-content-center">
+							<li class="page-item" th:classappend="${contactPage.first} ? 'disabled'">
+								<a class="page-link"
+									th:href="@{/admin/manage-contacts(page=${currentPage-1},keyword=${keyword})}">Prev</a>
+							</li>
+
+							<li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages-1)}"
+								th:classappend="${i == currentPage} ? 'active'">
+								<a class="page-link" th:href="@{/admin/manage-contacts(page=${i},keyword=${keyword})}"
+									th:text="${i + 1}">1</a>
+							</li>
+
+							<li class="page-item" th:classappend="${contactPage.last} ? 'disabled'">
+								<a class="page-link"
+									th:href="@{/admin/manage-contacts(page=${currentPage+1},keyword=${keyword})}">Next</a>
+							</li>
+						</ul>
+					</nav>
+
+				</div>
+			</div>
+		</div>
+
+		<!-- Highlight sidebar item -->
+		<script>
+			$(document).ready(() => {
+				$(".item").removeClass("active");
+				$('#view-contacts').addClass("active");
+			});
+		</script>
+
+	</section>
+</body>
+
+</html>

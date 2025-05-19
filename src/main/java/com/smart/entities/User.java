@@ -30,13 +30,13 @@ public class User {
  @Column(unique = true, nullable = false, length = 255) // DB constraints
  private String email;
  
- @NotBlank(message = "Password cannot be blank")
- @Size(min = 6, max = 20, message = "Password must be between 6 and 20 characters!")
- @Pattern(
-     regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]+$",
-     message = "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character!"
- )
- @Column(nullable = false)
+// @NotBlank(message = "Password cannot be blank")
+// @Size(min = 6, max = 20, message = "Password must be between 6 and 20 characters!")
+// @Pattern(
+//     regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]+$",
+//     message = "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character!"
+// )
+// @Column(nullable = false)
  private String password;   
  
  @NotBlank(message = "Role is mandatory and should not be blank")

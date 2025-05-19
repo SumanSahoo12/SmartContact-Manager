@@ -2,14 +2,62 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="base::layout(~{::section})">
 
 <head>
-	<meta charset="UTF-8" />
-	<title>About page</title>
+    <meta charset="UTF-8" />
+    <title>About Smart Contact Manager</title>
 </head>
 
 <body>
-	<section style="margin-top: 65px;">
-		<h1>This is about 1 page</h1>
-	</section>
-	
+    <section class="py-5">
+        <div class="container">
+            <div class="card shadow-lg border-0 rounded-4 p-4">
+                <h1 class="text-center text-primary mb-3">About <strong>Smart Contact Manager</strong></h1>
+                <hr class="mb-4">
+
+                <p class="lead text-center text-muted mb-5">
+                    Smart Contact Manager is a secure, user-friendly web application built using Spring Boot and Thymeleaf.
+                    It helps users manage their personal and professional contacts in one place efficiently and securely.
+                </p>
+
+                <div class="row mb-5">
+                    <div class="col-md-6">
+                        <h4 class="text-success"><i class="fas fa-tools me-2"></i>Features</h4>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">✅ User Registration and Login</li>
+                            <li class="list-group-item">✅ Role-based Access Control (Admin/User)</li>
+                            <li class="list-group-item">✅ Add, Update, Delete Contacts</li>
+                            <li class="list-group-item">✅ Profile Image Upload for Contacts and Users</li>
+                            <li class="list-group-item">✅ Search and Filter Contacts</li>
+                            <li class="list-group-item">✅ Responsive Bootstrap UI</li>
+                        </ul>
+                    </div>
+
+                    <div class="col-md-6">
+                        <h4 class="text-info"><i class="fas fa-code me-2"></i>Technologies Used</h4>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">💻 Java with Spring Boot (MVC, Security)</li>
+                            <li class="list-group-item">🛢️ Hibernate + MySQL</li>
+                            <li class="list-group-item">🧩 Thymeleaf Templating Engine</li>
+                            <li class="list-group-item">🎨 Bootstrap for Styling</li>
+                            <li class="list-group-item">🔁 Git & GitHub for Version Control</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="text-center mt-4">
+                    <h4 class="text-secondary"><i class="fas fa-user-circle me-2"></i>Developer</h4>
+                    <p class="fw-bold mb-1">Suman Sahoo — Java Backend Developer</p>
+                    <p>
+                        <a href="https://github.com/your-github-username" target="_blank" class="btn btn-dark btn-sm mt-2">
+                            <i class="fab fa-github me-1"></i>View on GitHub
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FontAwesome for icons (only if not already included globally) -->
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 </body>
+
 </html>

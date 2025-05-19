@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="normal/base::layout(~{::section})">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="user/base::layout(~{::section})">
 
 <head>
 	<meta charset="UTF-8" />
@@ -27,7 +27,7 @@
 
 							<!-- Form Section -->
 							<form th:object="${contact}" enctype="multipart/form-data" method="post"
-								th:action="@{/processUpdate/{id}(id=${contact.contactId})}" class="mt-2">
+								th:action="@{/user/processUpdate/{id}(id=${contact.contactId})}" class="mt-2">
 
 								<!-- Hidden field for contact ID -->
 								<input type="hidden" th:field="*{contactId}" />

@@ -49,6 +49,7 @@ nav {
 	padding: 10px 25px;
 	text-decoration: none;
 	color: gray;
+	/*color: red;*/
 }
 
 .sidebar a:hover {
@@ -106,6 +107,6 @@ nav {
 
 .active{
 	background: #009688 !important;
-	/*color: white !important;*/
+	color: white !important;
 }
 

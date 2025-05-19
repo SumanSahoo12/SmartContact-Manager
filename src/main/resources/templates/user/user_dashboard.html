@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{normal/base::layout(~{::section})}">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{user/base::layout(~{::section})}">
 
 <head>
 	<meta charset="UTF-8" />
@@ -24,9 +24,9 @@
 					</div>
 
 					<h1 class="text-center mt-3 text-secondary">Start adding your contact</h1>
-					<a th:href="@{'/addContact'}" class="btn btn-primary btn-block mt-4 text-uppercase">Add New
+					<a th:href="@{'/user/addContact'}" class="btn btn-primary btn-block mt-4 text-uppercase">Add New
 						Contact</a>
-					<a th:href="@{'/showContacts/0'}" class="btn btn-success btn-block mt-2 text-uppercase">Show
+					<a th:href="@{'/user/showContacts/0'}" class="btn btn-success btn-block mt-2 text-uppercase">Show
 						Contacts</a>
 					<a th:href="@{'/logout'}" class="btn btn-danger btn-block mt-2 text-uppercase">LOGOUT</a>
 				</div>

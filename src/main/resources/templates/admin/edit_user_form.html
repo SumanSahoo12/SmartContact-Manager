@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/base :: layout(~{::section})}">
+
+<head>
+	<meta charset="UTF-8">
+	<title>Edit User</title>
+</head>
+
+<body>
+	<section>
+		<div class="container my-4">
+			<div class="card shadow">
+				<div class="card-body">
+
+					<h3 class="text-center text-primary mb-4">Edit User</h3>
+
+					<form th:object="${userForm}" th:action="@{/admin/update}" method="post"
+						enctype="multipart/form-data">
+
+						<!-- Show validation errors inside the form -->
+						<div th:if="${#fields.hasAnyErrors()}" class="alert alert-danger">
+							Please correct the errors below.
+						</div>
+
+						<!-- Hidden ID -->
+						<input type="hidden" th:field="*{userId}" />
+
+						<!-- Name -->
+						<div class="mb-3">
+							<label class="form-label">Name</label>
+							<input class="form-control" th:field="*{name}" required />
+							<div class="text-danger" th:errors="*{name}"></div>
+						</div>
+
+						<!-- Email -->
+						<div class="mb-3">
+							<label class="form-label">Email</label>
+							<input type="email" class="form-control" th:field="*{email}" required />
+							<div class="text-danger" th:errors="*{email}"></div>
+						</div>
+
+						<!-- Role -->
+						<div class="mb-3">
+							<label class="form-label">Role</label>
+							<select class="form-control" th:field="*{role}">
+								<option value="ROLE_USER">ROLE_USER</option>
+								<option value="ROLE_ADMIN">ROLE_ADMIN</option>
+							</select>
+						</div>
+
+						<!-- About -->
+						<div class="mb-3">
+							<label class="form-label">About</label>
+							<textarea class="form-control" rows="4" th:field="*{about}"></textarea>
+						</div>
+
+						<!-- Current Image -->
+						<div class="mb-3">
+							<label class="form-label">Current Profile Image</label>
+							<div>
+								<img th:src="@{'/image/' + ${userForm.imageUrl}}" alt="Profile Image"
+									class="img-thumbnail rounded-circle"
+									style="width: 120px; height: 120px; object-fit: cover;">
+							</div>
+						</div>
+
+						<!-- Upload New Image -->
+						<div class="mb-3">
+							<label for="profileImage" class="form-label">Upload New Image (optional)</label>
+							<input type="file" class="form-control" id="profileImage" name="profileImage">
+						</div>
+
+
+						<div class="text-center">
+							<button class="btn btn-success" type="submit">Save</button>
+							<a th:href="@{/admin/manage-users}" class="btn btn-secondary">Cancel</a>
+						</div>
+
+					</form>
+
+				</div>
+			</div>
+		</div>
+
+		<script>
+			$(document).ready(() => {
+				$(".item").removeClass("active");
+				$("#view-users").addClass("active");
+			});
+		</script>
+
+	</section>
+</body>
+
+</html>

@@ -40,7 +40,7 @@ public class Contact {
 
     @NotBlank(message = "Phone number is mandatory")
     @Pattern(regexp = "^[0-9]{10}$", message = "Phone number must be exactly 10 digits")
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String phone;
 
     @Column(unique = true, nullable = false)

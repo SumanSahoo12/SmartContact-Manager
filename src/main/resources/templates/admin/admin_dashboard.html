@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/base::layout(~{::section})}">
+
+<head>
+	<meta charset="UTF-8" />
+	<title>Admin Dashboard</title>
+</head>
+
+<body>
+
+	<section>
+
+		<div class="container">
+			<div class="card shadow-sm">
+				<div class="card-body my-4">
+
+					<!-- Display success message -->
+					<div th:if="${success}" class="alert alert-success text-center">
+						<span th:text="${success}"></span>
+					</div>
+
+					<h3 class="text-center text-primary mb-4">Welcome to Admin Dashboard</h3>
+					<hr>
+
+					<!-- Stats Summary -->
+					<div class="row text-center">
+
+						<div class="col-md-3 mb-4">
+							<div class="card shadow border-left-primary">
+								<div class="card-body">
+									<h5>Total Accounts</h5>
+									<h3 th:text="${totalUsers}">0</h3>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-md-3 mb-4">
+							<div class="card shadow border-left-success">
+								<div class="card-body">
+									<h5>Total Contacts</h5>
+									<h3 th:text="${totalContacts}">0</h3>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-md-3 mb-4">
+							<div class="card shadow border-left-warning">
+								<div class="card-body">
+									<h5>Admins</h5>
+									<h3 th:text="${adminCount}">0</h3>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-md-3 mb-4">
+							<div class="card shadow border-left-info">
+								<div class="card-body">
+									<h5>Regular Users</h5>
+									<h3 th:text="${userCount}">0</h3>
+								</div>
+							</div>
+						</div>
+
+					</div>
+
+					<!-- Action Buttons -->
+					<div class="text-center mt-4">
+						<a th:href="@{/admin/manage-users}" class="btn btn-outline-primary m-2">
+							<i class="fas fa-users"></i> Manage Users
+						</a>
+						<a th:href="@{/admin/manage-contacts}" class="btn btn-outline-success m-2">
+							<i class="fas fa-address-book"></i> View Contacts
+						</a>
+						<a th:href="@{/admin/profileAdmin}" class="btn btn-outline-secondary m-2">
+							<i class="fas fa-user-circle"></i> Admin Profile
+						</a>
+					</div>
+
+				</div>
+			</div>
+		</div>
+
+		<script>
+			$(document).ready(() => {
+				$(".item").removeClass("active");
+				$('#admin-dashboard').addClass("active");
+			});
+		</script>
+
+	</section>
+
+
+</body>
+
+</html>

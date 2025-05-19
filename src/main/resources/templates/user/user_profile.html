@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{normal/base::layout(~{::section})}">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{user/base::layout(~{::section})}">
 
 <head>
 	<meta charset="UTF-8" />
@@ -23,6 +23,12 @@
 						<div th:if="${error}" class="alert alert-danger text-center">
 							<p th:text="${error}"></p>
 						</div>
+
+                        <!-- Display Success Message -->
+						<div th:if="${success}" class="alert alert-success text-center">
+							<p th:text="${success}"></p>
+						</div>
+
 					</div>
 
 
@@ -54,10 +60,10 @@
 					</table>
 
 					<div class="container mt-3">
-						<a th:href="@{'/deleteUser/'+${user.userId}}" class="btn btn-danger btn-sm btn-block">
+						<a th:href="@{'/user/deleteUser/'+${user.userId}}" class="btn btn-danger btn-sm btn-block">
 							<i class="fas fa-trash"></i> Delete
 						</a>
-						<a th:href="@{'/update-User/'+${user.userId}}" class="btn btn-primary btn-sm btn-block">
+						<a th:href="@{'/user/update-User/'+${user.userId}}" class="btn btn-primary btn-sm btn-block">
 							<i class="fas fa-edit"></i> Update
 						</a>
 					</div>

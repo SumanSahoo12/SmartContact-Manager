@@ -6,12 +6,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.security.Principal;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -19,6 +22,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -33,7 +37,11 @@ import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 
 @Controller
+@RequestMapping("/user")
 public class UserController {
+
+	@Autowired
+	private BCryptPasswordEncoder passwordEncoder;
 
 	@Autowired
 	private UserRepo userRepo;
@@ -43,139 +51,101 @@ public class UserController {
 
 	// Common data method to add user details to the model
 	@ModelAttribute
-	public void addCommonData(HttpSession session, Model model) {
-		User user = (User) session.getAttribute("loggedInUser");
-		if (user != null) {
-			model.addAttribute("username", user);
-		}
+	public void addCommonData(Model model, Principal principal) {
+
+		String userName = principal.getName(); // userName = email here
+		// get the user by userName
+		User user = userRepo.findUserByEmail(userName);
+		model.addAttribute("user", user);
 	}
 
-	// User Dashboard (redirects to login if not authenticated)
+	// User Dashboard
 	@GetMapping("/user_dashboard")
-	public String userDashboard(HttpSession session, RedirectAttributes redirectAttributes, Model model) {
-		User user = (User) session.getAttribute("loggedInUser");
-		if (user == null) {
-			redirectAttributes.addFlashAttribute("error", "Login required! Please sign in to proceed.");
-			return "redirect:/login"; // Ensure only logged-in users access the dashboard
-		}
-		model.addAttribute("title", "User Dashboard");
-		return "normal/user_dashboard"; // Return user dashboard view
-	}      
+	public String userDashboard(Model model) {
 
-	// Logout Handler
-	@GetMapping("/logout")
-	public String logout(HttpSession session, RedirectAttributes redirectAttributes) {
-		session.invalidate(); // Destroy user session
-		redirectAttributes.addFlashAttribute("logoutSuccess", "You have logged out successfully.");
-		return "redirect:/login"; // Redirect to login page
+		model.addAttribute("title", "User Dashboard");
+		return "user/user_dashboard"; // Return user dashboard view
 	}
 
 	// Open Add Contact Form (Only for logged-in users)
 	@GetMapping("/addContact")
-	public String openAddContactForm(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
-		User user = (User) session.getAttribute("loggedInUser");
-		if (user == null) {
-			redirectAttributes.addFlashAttribute("error", "Login required! Please sign in to proceed.");
-			return "redirect:/login"; // Redirect if not logged in
-		}
+	public String openAddContactForm(Model model) {
 		model.addAttribute("title", "Add Contact");
 		model.addAttribute("contact", new Contact());
-		return "normal/addContactForm";
+		return "user/addContactForm";
 	}
 
-	// Process Contact Form Submission
-	@Transactional // Ensures Hibernate session is active
+	@Transactional
 	@PostMapping("/processContact")
-	public String processContact(HttpSession session, @Valid @ModelAttribute("contact") Contact contact,
-			BindingResult result, @RequestParam("profileImage") MultipartFile file, // Image is now mandatory
-			Model model, RedirectAttributes redirectAttributes) {
+	public String processContact(@Valid @ModelAttribute("contact") Contact contact, BindingResult result,
+			@RequestParam("profileImage") MultipartFile file, Principal principal,
+			RedirectAttributes redirectAttributes) {
 
-		User userSession = (User) session.getAttribute("loggedInUser");
+		User user = userRepo.findUserByEmail(principal.getName());
 
-		// Check if the user is logged in
-		if (userSession == null) {
-			redirectAttributes.addFlashAttribute("error", "Login required! Please sign in to proceed.");
-			return "redirect:/login";
-		}
-
-		// Fetch user with contacts to avoid LazyInitializationException
-		User user = userRepo.findUserWithContacts(userSession.getUserId()).orElse(null);
-
-		if (user == null) {
-			redirectAttributes.addFlashAttribute("error", "User not found!");
-			return "redirect:/login";
-		}
-
-		// Check for validation errors
 		if (result.hasErrors()) {
-			model.addAttribute("title", "Add Contact");
-			return "normal/addContactForm";
+			return "user/addContactForm";
 		}
 
-		// **Check if email exists and get username**
-		Optional<String> existingUserName = contactRepo.findNameByEmail(contact.getEmail());
-
-		if (existingUserName.isPresent()) {
-			String existingName = existingUserName.get();
-			if (!existingName.equalsIgnoreCase(contact.getName())) {
-				redirectAttributes.addFlashAttribute("error",
-						"You are not '" + existingName + "'. Please use the correct email associated with your name.");
-				return "redirect:/addContact";
-			}
+		// Check duplicates per user
+		if (contactRepo.existsByEmailAndUser(contact.getEmail(), user)) {
+			redirectAttributes.addFlashAttribute("error", "Email already exists in your contacts.");
+			return "redirect:/user/addContact";
 		}
 
-		// Ensure Image is Uploaded (Mandatory)
-		if (file == null || file.isEmpty()) {
+		if (contactRepo.existsByPhoneAndUser(contact.getPhone(), user)) {
+			redirectAttributes.addFlashAttribute("error", "Phone number already exists in your contacts.");
+			return "redirect:/user/addContact";
+		}
+
+		// Optional: Verify name if email already exists elsewhere
+		Optional<String> existingName = contactRepo.findNameByEmail(contact.getEmail());
+		if (existingName.isPresent() && !existingName.get().equalsIgnoreCase(contact.getName())) {
+			redirectAttributes.addFlashAttribute("error",
+					"You are not '" + existingName.get() + "'. Please enter the correct name.");
+			return "redirect:/user/addContact";
+		}
+
+		// Handle image upload
+		if (file.isEmpty()) {
 			redirectAttributes.addFlashAttribute("errorImage", "Profile image is required!");
-			return "redirect:/addContact"; // Redirect back to form
+			return "redirect:/user/addContact";
 		}
 
-		// Save Image to Folder
-		String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
 		String uploadDir = "src/main/resources/static/image/";
-
-		File directory = new File(uploadDir);
-		if (!directory.exists()) {
-			directory.mkdirs(); // Create directory if not exists
-		}
-
+		String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
 		try {
-			Path targetPath = Paths.get(uploadDir + fileName);
-			Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
-			contact.setImage(fileName); // Save image name in DB
+			Files.createDirectories(Paths.get(uploadDir));
+			Path path = Paths.get(uploadDir + fileName);
+			Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
+			contact.setImage(fileName);
 		} catch (IOException e) {
-			redirectAttributes.addFlashAttribute("errorImage", "Error uploading image. Please try again.");
-			return "redirect:/addContact";
+			redirectAttributes.addFlashAttribute("errorImage", "Image upload failed.");
+			return "redirect:/user/addContact";
 		}
 
-		// link contact with user and save
+		// Save contact
 		contact.setUser(user);
-		user.getContacts().add(contact);
-		userRepo.save(user);
-
+		contactRepo.save(contact);
 		redirectAttributes.addFlashAttribute("success", "Contact added successfully!");
-		return "redirect:/addContact";
+		return "redirect:/user/addContact";
 	}
 
 	// Show contacts handler
 	// per page =5[n]
 	// current page = 0[page]
 	@GetMapping("/showContacts/{page}")
-	public String showContacts(@PathVariable("page") Integer page, HttpSession session, Model model,
-			RedirectAttributes redirectAttributes) {
+	public String showContacts(@PathVariable("page") Integer pg, Model model, RedirectAttributes redirectAttributes,
+			Principal principal) {
 
-		// Retrieve logged-in user from session
-		User user = (User) session.getAttribute("loggedInUser");
+		model.addAttribute("title", "Show User Contacts");
 
-		// Check if the user is logged in
-		if (user == null) {
-			redirectAttributes.addFlashAttribute("error", "Login required! Please sign in to proceed.");
-			return "redirect:/login";
-		}
+		String userName = principal.getName(); // userName = email here
+		User user = userRepo.findUserByEmail(userName);
 
 		// currentPage - page
 		// Contact per page - 4
-		Pageable pageable = PageRequest.of(page, 4);
+		Pageable pageable = PageRequest.of(pg, 4);
 
 		// Fetch user's contacts safely
 		Page<Contact> contacts = contactRepo.findContactsByUser(user.getUserId(), pageable);
@@ -185,68 +155,56 @@ public class UserController {
 			model.addAttribute("contacts", contacts);
 		}
 
-		model.addAttribute("title", "Show User Contacts");
-		model.addAttribute("currentPage", page);
+		model.addAttribute("currentPage", pg);
 		model.addAttribute("totalPages", contacts.getTotalPages());
 
-		return "normal/show_contacts";
+		return "user/show_contacts";
 	}
 
 	// showing particular contact details
 	@GetMapping("/{contactId}/contact")
-	public String showContactDetail(@PathVariable("contactId") Integer contactId, HttpSession session, Model model,
-			RedirectAttributes redirectAttributes) {
+	public String showContactDetail(@PathVariable("contactId") Integer contId, Model model, Principal principal) {
 
-		// Retrieve logged-in user from session
-		User user = (User) session.getAttribute("loggedInUser");
-
-		// Check if the user is logged in
-		if (user == null) {
-			redirectAttributes.addFlashAttribute("error", "Login required! Please sign in to proceed.");
-			return "redirect:/login";
-		}
 		// Find the contact and handle the absence gracefully
-		Optional<Contact> contactOptional = contactRepo.findById(contactId);
+		Optional<Contact> contactOptional = contactRepo.findById(contId);
 
 		// First check if contact exists
 		if (contactOptional.isPresent()) {
 			Contact contact = contactOptional.get();
 
+			String userName = principal.getName(); // userName = email here
+			User user = userRepo.findUserByEmail(userName);
+
 			// Check if the contact belongs to the logged-in user
 			if (user.getUserId() == contact.getUser().getUserId()) {
 				model.addAttribute("contact", contact);
-				return "normal/contact_details";
+				model.addAttribute("title", contact.getName());
+				return "user/contact_details";
 			} else {
 				model.addAttribute("error", "You don't have permission to view this contact.");
-				return "normal/contact_details"; // Show error on the same page
+				return "user/contact_details"; // Show error on the same page
 			}
 		} else {
 			// Handle invalid contact ID
 			model.addAttribute("error", "No contact found with the provided ID..!");
-			return "normal/contact_details"; // Show error on the same page
+			return "user/contact_details"; // Show error on the same page
 		}
 
 	}
 
 	// delete contact handler
 	@GetMapping("/delete/{contactId}")
-	public String deleteContact(@PathVariable("contactId") Integer contactId, HttpSession session,
+	public String deleteContact(@PathVariable("contactId") Integer contId, Principal principal,
 			RedirectAttributes redirectAttributes) {
 
-		// Retrieve logged-in user from session
-		User user = (User) session.getAttribute("loggedInUser");
-
-		// Check if the user is logged in
-		if (user == null) {
-			redirectAttributes.addFlashAttribute("error", "Login required! Please sign in to proceed.");
-			return "redirect:/login";
-		}
-
 		// Find the contact and handle the absence gracefully
-		Optional<Contact> contactOptional = contactRepo.findById(contactId);
+		Optional<Contact> contactOptional = contactRepo.findById(contId);
 
 		if (contactOptional.isPresent()) {
 			Contact contact = contactOptional.get();
+
+			String userName = principal.getName(); // userName = email here
+			User user = userRepo.findUserByEmail(userName);
 
 			// Check if the contact belongs to the logged-in user
 			if (user.getUserId() == contact.getUser().getUserId()) {
@@ -286,76 +244,65 @@ public class UserController {
 			redirectAttributes.addFlashAttribute("error", "No contact found with the provided ID.");
 		}
 
-		return "redirect:/showContacts/0"; // Redirect to contact list
+		return "redirect:/user/showContacts/0"; // Redirect to contact list
 	}
 
 	// open update form handler
 	@GetMapping("/update-contact/{contactId}")
-	public String upadteForm(@PathVariable("contactId") Integer contactId, HttpSession session, Model model,
-			RedirectAttributes redirectAttributes) {
+	public String upadteForm(@PathVariable("contactId") Integer contId, Model model,
+			RedirectAttributes redirectAttributes, Principal principal) {
 
 		model.addAttribute("title", "Update Contact");
 
-		// Retrieve logged-in user from session
-		User user = (User) session.getAttribute("loggedInUser");
+		// Get logged-in user
+		String userName = principal.getName();
+		User user = userRepo.findUserByEmail(userName);
 
-		// Check if the user is logged in
-		if (user == null) {
-			redirectAttributes.addFlashAttribute("error", "Login required! Please sign in to proceed.");
-			return "redirect:/login";
-		}
+		// Safely fetch contact
+		Optional<Contact> optionalContact = contactRepo.findById(contId);
 
-		// Find the contact and handle the absence gracefully
-		Optional<Contact> contactOptional = contactRepo.findById(contactId);
+		if (optionalContact.isPresent()) {
+			Contact contact = optionalContact.get();
 
-		// First check if contact exists
-		if (contactOptional.isPresent()) {
-			Contact contact = contactOptional.get();
-
-			// Check if the contact belongs to the logged-in user
+			// Check ownership of the contact
 			if (user.getUserId() == contact.getUser().getUserId()) {
-
 				model.addAttribute("contact", contact);
+				return "user/update_form";
 			} else {
-				// Use redirectAttributes for consistent error handling
-				redirectAttributes.addFlashAttribute("error", "You don't have permission to update this contact..!");
+				redirectAttributes.addFlashAttribute("error", "You don’t have permission to update this contact.");
 			}
-		} else {
-			// Handle invalid contact ID using redirectAttributes
-			redirectAttributes.addFlashAttribute("error", "No contact found with the provided ID.");
-		}
 
-		return "normal/update_form";
+		} else {
+			redirectAttributes.addFlashAttribute("error", "Contact not found.");
+		}
+		return "user/update_form";
 	}
 
 	// update contact handler
 	@Transactional
 	@PostMapping("/processUpdate/{contactId}")
-	public String updateContact(@PathVariable("contactId") int contactId, @ModelAttribute Contact contact,
-			@RequestParam("profileImage") MultipartFile file, HttpSession session,
-			RedirectAttributes redirectAttributes) {
+	public String updateContact(@PathVariable("contactId") int contId, @ModelAttribute Contact contact,
+			@RequestParam("profileImage") MultipartFile file, RedirectAttributes redirectAttributes,
+			Principal principal) {
 
 		try {
-			// Check if user is logged in
-			User user = (User) session.getAttribute("loggedInUser");
-			if (user == null) {
-				redirectAttributes.addFlashAttribute("error", "Login required! Please sign in to proceed.");
-				return "redirect:/login";
-			}
 
 			// Find existing contact
-			Optional<Contact> contactOptional = contactRepo.findById(contactId);
-			if (contactOptional.isEmpty()) {
+			Optional<Contact> oldContactDetails = contactRepo.findById(contId);
+			if (oldContactDetails.isEmpty()) {
 				redirectAttributes.addFlashAttribute("error", "Contact not found!");
-				return "redirect:/showContacts/0";
+				return "redirect:/user/showContacts/0";
 			}
 
-			Contact existingContact = contactOptional.get();
+			Contact existingContact = oldContactDetails.get();
+
+			String userName = principal.getName(); // userName = email here
+			User user = userRepo.findUserByEmail(userName);
 
 			// Check if the user is authorized to update the contact
 			if (existingContact.getUser().getUserId() != user.getUserId()) {
 				redirectAttributes.addFlashAttribute("error", "You are not authorized to update this contact!");
-				return "redirect:/showContacts/0";
+				return "redirect:/user/showContacts/0";
 			}
 
 			// Update basic details
@@ -401,7 +348,7 @@ public class UserController {
 				} catch (IOException e) {
 					redirectAttributes.addFlashAttribute("errorImage",
 							"Failed to upload profile image. Please try again.");
-					return "redirect:/showContacts/0";
+					return "redirect:/user/showContacts/0";
 				}
 			}
 
@@ -413,199 +360,164 @@ public class UserController {
 			redirectAttributes.addFlashAttribute("error", "An error occurred while updating the contact.");
 		}
 
-		return "redirect:/showContacts/0";
+		return "redirect:/user/showContacts/0";
 	}
 
 	// profile handler
 	@GetMapping("/profile")
-	public String yourProfile(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
-
-		User user = (User) session.getAttribute("loggedInUser");
-		if (user == null) {
-			redirectAttributes.addFlashAttribute("error", "Login required! Please sign in to proceed.");
-			return "redirect:/login";
-		}
+	public String yourProfile(Model model) {
 
 		model.addAttribute("title", "Profile Page");
-		model.addAttribute("user", user);
-		return "normal/user_profile";
+		return "user/user_profile";
 	}
 
 	// delete User handler
 	@GetMapping("/deleteUser/{userId}")
-	public String deleteUser(@PathVariable("userId") Integer userId, HttpSession session,
-			RedirectAttributes redirectAttributes) {
+	public String deleteUser(@PathVariable("userId") Integer uId, RedirectAttributes redirectAttributes,
+			Principal principal) {
 
-		// Retrieve logged-in user from session
-		User user = (User) session.getAttribute("loggedInUser");
+		String userName = principal.getName(); // userName = email here
+		User user = userRepo.findUserByEmail(userName);
 
-		// Check if the user is logged in
-		if (user == null) {
-			redirectAttributes.addFlashAttribute("error", "Login required! Please sign in to proceed.");
-			return "redirect:/login";
+		// Authorization check (only admin or the user themselves can delete)
+		if (user.getRole().equals("ADMIN") || user.getUserId() == uId) {
+			userRepo.deleteById(uId);
+			redirectAttributes.addFlashAttribute("success", "User account has deleted successfully!");
+			return "redirect:/signup"; // Redirect to contact list
 		} else {
-			// ✅ Authorization check (only admin or the user themselves can delete)
-			if (user.getRole().equals("ADMIN") || user.getUserId() == userId) {
-				userRepo.deleteById(userId);
-				redirectAttributes.addFlashAttribute("success", "User account has deleted successfully!");
-				return "redirect:/signup"; // Redirect to contact list
-			} else {
-				redirectAttributes.addFlashAttribute("error", "You are not authorized to delete this user!");
-				return "redirect:/user_profile";
-			}
+			redirectAttributes.addFlashAttribute("error", "You are not authorized to delete this user!");
+			return "redirect:/user/user_profile";
 		}
 
 	}
 
 	// open update form handler for user
 	@GetMapping("/update-User/{userId}")
-	public String updateFormUser(@PathVariable("userId") Integer userId, HttpSession session, Model model,
-			RedirectAttributes redirectAttributes) {
+	public String updateFormUser(@PathVariable("userId") Integer uId, Model model,
+			RedirectAttributes redirectAttributes, Principal principal) {
 
 		model.addAttribute("title", "Update User");
 
-		// Retrieve logged-in user from session
-		User loggedInUser = (User) session.getAttribute("loggedInUser");
+		String userName = principal.getName(); // userName = email here
+		User user = userRepo.findUserByEmail(userName);
 
-		if (loggedInUser == null) {
-			redirectAttributes.addFlashAttribute("error", "Login required! Please sign in to proceed.");
-			return "redirect:/login";
-		}
-
-		// ✅ Allow update only if loggedInUser is updating their own data
-		if (loggedInUser.getUserId() != userId) {
+		// Allow update only if loggedInUser is updating their own data
+		if (user.getUserId() != uId) {
 			redirectAttributes.addFlashAttribute("error", "You are not authorized to update this user!");
-			return "redirect:/profile";
+			return "redirect:/user/profile";
 		}
 
 		// No need to check existence in DB since user data is from session
-		model.addAttribute("user", loggedInUser);
-		return "normal/updateUserForm"; // ✅ Create `update_form.html`
+		model.addAttribute("user", user);
+		return "user/updateUserForm"; // ✅ Create `update_form.html`
 	}
 
-	// Handle Profile Update Request
+	// Handle Profile Update Request	
 	@Transactional
 	@PostMapping("/update-User")
-	public String processUpdateForm(@Valid @ModelAttribute("user") User updatedUser, BindingResult result,
-			HttpSession session, RedirectAttributes redirectAttributes, Model model) {
+	public String processUpdateForm(@Valid @ModelAttribute("user") User updatedUser,
+	                                BindingResult result,
+	                                HttpSession session,
+	                                RedirectAttributes redirectAttributes,
+	                                Model model,
+	                                Principal principal) {
 
-		model.addAttribute("title", "Update User");
+	    String userName = principal.getName(); // Logged-in user's email
+	    User loggedInUser = userRepo.findUserByEmail(userName);
 
-		// Retrieve logged-in user from session
-		User loggedInUser = (User) session.getAttribute("loggedInUser");
+	    model.addAttribute("title", "Update User");
 
-		if (loggedInUser == null) {
-			redirectAttributes.addFlashAttribute("error", "Login required! Please sign in to proceed.");
-			return "redirect:/login";
+	    // Only allow if user is updating their own profile
+	    if (loggedInUser.getUserId() != updatedUser.getUserId()) {
+	        redirectAttributes.addFlashAttribute("error", "You are not authorized to update this user!");
+	        return "redirect:/user/profile";
+	    }
+
+	    // Handle validation errors
+	    if (result.hasErrors()) {
+	        return "user/updateUserForm";
+	    }
+
+	    // Fetch existing user by ID
+	    Optional<User> optionalUser = userRepo.findById(updatedUser.getUserId());
+	    if (optionalUser.isEmpty()) {
+	        redirectAttributes.addFlashAttribute("error", "User not found!");
+	        return "redirect:/user/profile";
+	    }
+
+	    User existingUser = optionalUser.get();
+
+	    // Save current role
+	    String oldRole = existingUser.getRole().trim().toUpperCase();
+	    String newRole = updatedUser.getRole().trim().toUpperCase();
+	    System.out.println("String oldRole is " + " " + oldRole);
+	    System.out.println("String newRole is " + " " + newRole);
+
+	    // Update user fields
+	    existingUser.setName(updatedUser.getName());
+	    existingUser.setEmail(updatedUser.getEmail());
+	    existingUser.setAbout(updatedUser.getAbout());
+	    existingUser.setRole(newRole);  // ✅ Very important
+
+	    userRepo.save(existingUser); // ✅ Save updated data
+
+	    // DEBUG LOGS
+	    System.out.println("Old Role: " + oldRole);
+	    System.out.println("New Role: " + newRole);
+	    System.out.println("Saved Role in DB: " + userRepo.findById(existingUser.getUserId()).get().getRole());
+
+	    if ("ROLE_ADMIN".equals(updatedUser.getRole())) {
+			session.invalidate(); // Invalidate current session
+			redirectAttributes.addFlashAttribute("success",
+					"Profile updated successfully. You are no longer an admin. Please login again.");
+			return "redirect:/login";           
 		}
 
-		// Make sure userId is coming from form
-		System.out.println("Form submitted with userId: " + updatedUser.getUserId());
-
-		// Allow update only if loggedInUser is updating their own data
-		if (loggedInUser.getUserId() != updatedUser.getUserId()) {
-			redirectAttributes.addFlashAttribute("error", "You are not authorized to update this user!");
-			return "redirect:/profile";
-		}
-
-		// Handle validation errors
-		if (result.hasErrors()) {
-			System.out.println("Validation errors: " + result);
-			return "normal/updateUserForm"; // ✅ Return back to the form if validation fails
-		}
-
-		// Fetch existing user from the database
-		Optional<User> userOptional = userRepo.findById(loggedInUser.getUserId());
-		if (userOptional.isEmpty()) {
-			redirectAttributes.addFlashAttribute("error", "User not found!");
-			return "redirect:/profile";
-		}
-
-		User existingUser = userOptional.get();
-
-		// Update fields
-		existingUser.setName(updatedUser.getName());
-		existingUser.setEmail(updatedUser.getEmail());
-//		existingUser.setPassword(updatedUser.getPassword());
-		existingUser.setRole(updatedUser.getRole());
-		existingUser.setAbout(updatedUser.getAbout());
-
-		System.out.println(updatedUser);
-
-		// ✅ Save updated user
-		userRepo.save(existingUser);
-
-		// ✅ Fix: Update session with latest user data
-		session.setAttribute("loggedInUser", existingUser);
-
-		model.addAttribute("success", "Profile updated successfully!");
-		return "redirect:/profile"; // ✅ Redirect to profile page after successful update
-	}
+	    // Stay logged in if role hasn't changed
+	    redirectAttributes.addFlashAttribute("success", "Profile updated successfully!");
+	    return "redirect:/user/profile";
+	}   
+    
 
 	// open setting handler
 	@GetMapping("/setting")
-	public String openSetting(HttpSession session, RedirectAttributes redirectAttributes, Model model) {
+	public String openSetting(Model model) {
 
-		User user = (User) session.getAttribute("loggedInUser");
-		if (user == null) {
-			redirectAttributes.addFlashAttribute("error", "Login required! Please sign in to proceed.");
-			return "redirect:/login"; // Ensure only logged-in users access the dashboard
-		}
 		model.addAttribute("title", "Settings");
-
-		return "normal/setting";
+		return "user/setting";
 	}
 
 	// change password handler
 	@PostMapping("/changePassword")
 	public String changePassword(@RequestParam("oldPassword") String oldPass,
 			@RequestParam("newPassword") String newPass, HttpSession session, RedirectAttributes redirectAttributes,
-			Model model) {
+			Model model, Principal principal) {
 
-		User user = (User) session.getAttribute("loggedInUser");
-		if (user == null) {
-			redirectAttributes.addFlashAttribute("error", "Login required! Please sign in to proceed.");
-			return "redirect:/login"; // Ensure only logged-in users access the dashboard
-		}
-
-		// ✅ Validate old password field
+		// Validate old password field
 		if (oldPass == null || oldPass.isBlank()) {
 			redirectAttributes.addFlashAttribute("oldPasswordError", "Old password cannot be empty");
-			return "redirect:/setting";
-		}
+			return "redirect:/user/setting";
+		}   
 
-		// ✅ Validate new password field
+		// Validate new password field
 		if (newPass == null || newPass.isBlank()) {
 			redirectAttributes.addFlashAttribute("newPasswordError", "New password cannot be empty");
-			return "redirect:/setting";
+			return "redirect:/user/setting";
 		}
 
-		// ✅ Check if old password matches (example logic)
-		if (!user.getPassword().equals(oldPass)) {
+		String userName = principal.getName(); // userName = email here
+		User currentUser = userRepo.findUserByEmail(userName);
+
+		if (passwordEncoder.matches(oldPass, currentUser.getPassword())) {
+			currentUser.setPassword(passwordEncoder.encode(newPass));
+			userRepo.save(currentUser);
+			redirectAttributes.addFlashAttribute("success", "Password changed successfully");
+			return "redirect:/user/user_dashboard";
+		} else {
 			redirectAttributes.addFlashAttribute("error", "Old password is incorrect");
-			return "redirect:/setting";
+			return "redirect:/user/setting";
 		}
 
-		// ✅ Condition 1: Check password length (between 6 and 20 characters)
-		if (newPass.length() < 6 || newPass.length() > 20) {
-			redirectAttributes.addFlashAttribute("newPasswordError", "Password must be between 6 and 20 characters!");
-			return "redirect:/setting";
-		}
-
-		// ✅ Condition 2: Check for uppercase, lowercase, digit, and special character
-		if (!newPass.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]+$")) {
-			redirectAttributes.addFlashAttribute("newPasswordError",
-					"Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character!");
-			return "redirect:/setting";
-		}
-
-		// ✅ Update password (example logic)
-		user.setPassword(newPass);
-		userRepo.save(user);
-
-		redirectAttributes.addFlashAttribute("success", "Password changed successfully");
-
-		return "redirect:/user_dashboard";
 	}
 
 }

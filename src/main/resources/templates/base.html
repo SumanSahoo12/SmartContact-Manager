@@ -28,16 +28,16 @@
 
 		<div class="collapse navbar-collapse" id="navbarSupportedContent">
 			<ul class="navbar-nav ml-auto text-uppercase">
-				<li class="nav-item active">
-					<a class="nav-link" th:href="@{/home}">Home <span class="sr-only">(current)</span></a>
+				<li class="nav-item" th:classappend="${currentPage} == 'home' ? ' active'">
+					<a class="nav-link" th:href="@{/home}">Home</a>
 				</li>
-				<li class="nav-item">
+				<li class="nav-item" th:classappend="${currentPage} == 'about' ? ' active'">
 					<a class="nav-link" th:href="@{/about}">About</a>
 				</li>
-				<li class="nav-item">
+				<li class="nav-item" th:classappend="${currentPage} == 'login' ? ' active'">
 					<a class="nav-link" th:href="@{/login}">Login</a>
 				</li>
-				<li class="nav-item">
+				<li class="nav-item" th:classappend="${currentPage} == 'signup' ? ' active'">
 					<a class="nav-link" th:href="@{/signup}">Sign up</a>
 				</li>
 			</ul>
@@ -48,7 +48,7 @@
 
 
 	<div th:replace="${content}"> </div>
-	
+
 
 
 	<!-- Optional JavaScript -->

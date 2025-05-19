@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/base :: layout(~{::section})}">
+
+<head>
+	<meta charset="UTF-8">
+	<title>Admin Profile</title>
+</head>
+
+<body>
+	<section>
+		<div class="container my-3" style="margin-top: 20px;">
+			<div class="row justify-content-center">
+				<div class="col-md-8">
+
+					<!-- Error Message -->
+					<div th:if="${error}" class="alert alert-danger text-center" th:text="${error}"></div>
+
+					<!-- Success Message -->
+					<div th:if="${success}" class="alert alert-success text-center" th:text="${success}"></div>
+
+					<!-- Profile Info Card -->
+					<div class="card shadow border-primary">
+						<div class="card-header bg-primary text-white text-center">
+							<h4 class="mb-0">Admin Profile</h4>
+						</div>
+
+						<div class="card-body p-4">
+
+							<!-- Avatar centre aligned -->
+							<div class="text-center mb-4">
+								<img th:src="@{'/image/' + ${user.imageUrl}}" alt="Profile Image"
+									class="rounded-circle border border-secondary"
+									style="width: 140px; height: 140px; object-fit: cover;">
+							</div>
+
+							<!-- Data table -->
+							<table class="table table-bordered table-striped">
+								<tbody>
+									<tr>
+										<th style="width: 30%">Name</th>
+										<td th:text="${user.name}">Admin Name</td>
+									</tr>
+									<tr>
+										<th>Email</th>
+										<td th:text="${user.email}">admin@example.com</td>
+									</tr>
+									<tr>
+										<th>Role</th>
+										<td th:text="${user.role}">ROLE_ADMIN</td>
+									</tr>
+									<tr>
+										<th>About</th>
+										<td th:text="${user.about}">Admin's description or bio goes here.</td>
+									</tr>
+								</tbody>
+							</table>
+
+							<!-- ► Action buttons ◄ -->
+							<div class="d-flex justify-content-center gap-4">
+								<!-- Edit button -->
+								<a th:href="@{/admin/Editprofile}" class="btn btn-warning  mr-2"
+									onclick="return confirm('Do you really want to update your profile?');">
+									<i class="bi bi-pencil-square mr-1"></i> Edit
+								</a>
+
+								<!-- Delete button (confirm first) -->
+								<a th:href="@{/admin/profile/delete}" class="btn btn-danger"
+									onclick="return confirm('Delete your account? This action cannot be undone.');">
+									<i class="bi bi-trash mr-1"></i> Delete
+								</a>
+							</div>
+
+						</div>
+					</div>
+
+				</div>
+			</div>
+		</div>
+
+		<!-- Highlight sidebar item -->
+		<script>
+			$(document).ready(() => {
+				$(".item").removeClass("active");
+				$("#admin-profile").addClass("active");
+			});
+		</script>
+	</section>
+</body>
+
+</html>

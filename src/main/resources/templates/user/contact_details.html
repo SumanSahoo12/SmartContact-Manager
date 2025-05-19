@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="normal/base::layout(~{::section})">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="user/base::layout(~{::section})">
 
 <head>
 	<meta charset="UTF-8" />
@@ -56,10 +56,10 @@
 					</div>
 
 					<div class="container mt-3">
-						<a th:href="@{'/delete/'+${contact.contactId}}" class="btn btn-danger btn-sm btn-block">
+						<a th:href="@{'/user/delete/'+${contact.contactId}}" class="btn btn-danger btn-sm btn-block">
 							<i class="fas fa-trash"></i> Delete
 						</a>
-						<a th:href="@{'/update-contact/'+${contact.contactId}}" class="btn btn-primary btn-sm btn-block">
+						<a th:href="@{'/user/update-contact/'+${contact.contactId}}" class="btn btn-primary btn-sm btn-block">
 							<i class="fas fa-edit"></i> Update
 						</a>
 					</div>
